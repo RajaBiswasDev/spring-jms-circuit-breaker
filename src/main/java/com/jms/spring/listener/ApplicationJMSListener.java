@@ -1,5 +1,8 @@
 package com.jms.spring.listener;
 
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+
 import com.jms.spring.util.ApplicationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +29,16 @@ public class ApplicationJMSListener {
     this.circuitBreakerFactory = circuitBreakerFactory;
   }
 
-  @JmsListener(destination = ApplicationConstants.MY_QUEUE, containerFactory = "jmsListenerContainerFactory")
-  public void handleMessage() {
+  @JmsListener(destination = ApplicationConstants.MY_QUEUE, containerFactory = "jmsListenerContainerFactory"/*, concurrency = "2-2"*/)
+  public void handleMessage(TextMessage message) throws JMSException {
     LOG.info("Inside handleMessage");
 
     CircuitBreaker circuitBreaker = circuitBreakerFactory.create(
         "circuitbreaker");
-    String processedMessage = circuitBreaker.run(() -> restTemplate.getForObject(recommendingAppUrl, String.class),
+    String bookList = circuitBreaker.run(() -> restTemplate.getForObject(recommendingAppUrl, String.class),
         throwable -> fallbackProcessMessage());
 
+    String processedMessage = message.getText().concat(":").concat(bookList);
     LOG.info("processedMessage:{}", processedMessage);
   }
 
