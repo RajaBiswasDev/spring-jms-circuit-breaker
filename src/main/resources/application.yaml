@@ -1,0 +1,32 @@
+logging:
+  level:
+    root: info
+server:
+  port: 8086
+
+management:
+  server:
+    port: 9001
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+  info:
+    java:
+      enabled: true
+
+resilience4j.circuitbreaker:
+  instances:
+    circuitbreaker:
+      registerHealthIndicator: true
+      sliding-window-size: 5
+      minimum-number-of-calls: 2
+
+recommendingAppUrl: "http://localhost:8090/recommended"
+
